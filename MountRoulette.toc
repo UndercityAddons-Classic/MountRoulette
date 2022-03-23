@@ -1,0 +1,16 @@
+## Interface: 11402
+
+## Title: MountRoulette
+
+## Notes: Play roulette with your mounts!
+
+## Version: 1.0.0
+## Author: WireRydr
+
+## SavedVariables: MountRoulette
+## OptionalDeps:
+## Dependencies:
+
+Debugging.lua
+Mounts.lua
+MountRoulette.lua
