@@ -1,3 +1,10 @@
+<div align="center">
+
+# MountRoulette
+
+!(Logo)(https://imgur.com/a/oYnG5s3)
+</div>
+
 MountRoulette is a WoW Classic (currently Season of Mastery) addon that randomly chooses a mount for you every time you mount up.  It was created because no other random-mount addons could be found that were compatible with WoW Classic.  The next best thing that appeared to be availble was a WoW Classic TBC addon, which seemed unreliable at best.  MountRoulette is very simple to configure and use across all of your characters.
 
 ## Features
@@ -19,17 +26,17 @@ MountRoulette is a WoW Classic (currently Season of Mastery) addon that randomly
 
 ## Controlling MountRoulette
 - MountRoulette has several commands you can use.  All start with "/mroulette" or "/mr" (for short):
-	1. `/mroulette show`:  Shows all currently available mounts
-	1. `/mroulette scan`: Re-scan your bags and spellbook for all mounts currently available
-	2. `/mroulette choose`: Pick one of the available mounts randomly and assign it to MountRoulette's button.
+1. `/mroulette show`:  Shows all currently available mounts
+1. `/mroulette scan`: Re-scan your bags and spellbook for all mounts currently available
+2. `/mroulette choose`: Pick one of the available mounts randomly and assign it to MountRoulette's button.
 
 ## How It Works
 Everytime certain in-game events occur, MountRoulette automatically re-scans your bags and spellbook to find all mounts currently available.  It then randomly picks one of your available mounts to be used.  At present these events include:
-	- Whenever you log in
-	- Whenever your spellbook changes
-	- Whenever your bag contents change
-	- Whenever you move to a new zone
-	- Whenever you move to a new area within a zone
+- Whenever you log in
+- Whenever your spellbook changes
+- Whenever your bag contents change
+- Whenever you move to a new zone
+- Whenever you move to a new area within a zone
 
 MountRoulette creates a non-visible UI button (called ***MR_button***) and assigns it to invoke the selected mount, through either an item-use or spell-cast action depending on the kind of mount it is.
 
