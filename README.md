@@ -2,7 +2,7 @@
 
 # MountRoulette
 
-![Logo](https://imgur.com/a/oYnG5s3)
+![Logo](https://i.imgur.com/FMnEM4P.png)
 </div>
 
 MountRoulette is a WoW Classic (currently Season of Mastery) addon that randomly chooses a mount for you every time you mount up.  It was created because no other random-mount addons could be found that were compatible with WoW Classic.  The next best thing that appeared to be availble was a WoW Classic TBC addon, which seemed unreliable at best.  MountRoulette is very simple to configure and use across all of your characters.
