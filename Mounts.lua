@@ -2,11 +2,9 @@
      File Name           :     Mounts.lua
      Created By          :     WireRydr
      Creation Date       :     [2019-01-07 01:28]
-     Last Modified       :     [2022-03-22 14:46]
+     Last Modified       :     [2022-03-23 21:58]
      Description         :     Mounts class for the WoW addon MountRoulette
---]]
 
---[[
 This module of MountRoulette implements a Mounts class, responsible for all
 functionality related to Mount-related items and spells
 --]]
@@ -20,12 +18,12 @@ MR.Mounts_mt.__index = MR.Mounts_mt
 
 
 -- The following lookup tables list the possible mounts a player may potentially acquire in the current
--- game version.  They're broken down by area (ground vs flying) and type (usable items vs castable spells)
+-- game version.  They're broken down by area (ground vs flying) and type (usable items vs castable spells).
 --
--- NOTE: Each table is a numerically-indexed SPARSE array, with index gaps, and therefore cannot be
---	 iterated with pairs() or ipairs().  They are intended for rapid lookups only.
+-- NOTE: Each table is a numerically-indexed SPARSE array, with index gaps, and therefore cannot be iterated
+--	 with pairs() or ipairs().  They are intended for rapid lookups only.
 --	    Indices = WoW itemIDs or spellIDs
---	    Values  = speed (one of "fast" or "slow")
+--	    Values  = mount speed (one of "fast" or "slow")
 
 local tblPotentialGroundSpells = {
     [5784]="slow",  [13819]="slow", [23161]="fast", [23214]="fast", [34767]="fast", [34769]="slow" }
@@ -71,6 +69,7 @@ local tblPotentialFlyingItems = {
 -- @return  t1	    Same t1 table that was passed as argument, but now with t2 concatenated into it
 --
 -- NOTES:   Both t1 and t2 must be either associative, or non-gapped numerically indexed.
+--
 local function tableConcatenate( t1, t2 )
     for i = 1, #t2 do
 	t1[#t1+1] = t2[i]
@@ -80,17 +79,17 @@ end
 
 
 --- Class private method "ipairs_sparse"
--- Iterates over a SPARSE numerically-indexed table, potentially containing index gaps.
+-- Iterates over a SPARSE numerically-indexed table, potentially containing index gaps.  The iteration will
+-- occur in increasing numeric order.  It works by:
+--	1. Building a new index of keys from the table,
+--	2. Sorting the index table,
+--	3. Returning a closure where each call of the closure contains a consecutive index and value from the
+--	   sparse array.
 --
 -- @param   tbl	    Table (SPARSE, numerically indexed) to iterate over
 -- @return  i	    next index in the table
 -- @return  tbl[i]  value of the next indexed element
 --
--- This function works by:
---  1. Building a new index of keys from the table.
---  2. Sorting the index table.
---  3. Returning a closure where each call of the closure contains a consecutive index and value from the
---     sparse array.
 local function ipairs_sparse( tbl )
 
     -- holds sorted indices
@@ -118,19 +117,6 @@ local function ipairs_sparse( tbl )
 end
 
 
-local function getRidingSkill( )
-    local skillIndex, skillName
-    local skillRank = 0
-
-    for skillIndex = 1, GetNumSkillLines( ) do
-	skillName, _, _, skillRank = select( 1, GetSkillLineInfo( skillIndex ) )
-	debug:debug( "skillname[%s] skillRank[%s]", skillName, skillRank )
-	if SkillName == "Riding" then break end
-    end
-    return skillRank
-end
-
-
 --- Class private method "getKnownSpells"
 -- Determines all mount-related spells that the player currently knows, and adds them to one of two tables
 -- (known spells, fast mounts, and known spells, slow mounts).  A third table is also provided that lists
@@ -148,6 +134,7 @@ end
 --	  The "potential" table is a numerically indexed SPARSE array, and not a sequence.  The element
 --	  indices are spellIDs, and the values are either "fast" or "slow" to indicate the spell's mount-speed.
 --	  It is for rapid lookups, but can be iterated with ipairs_sparse().
+--
 local function getKnownSpells( tblKnownFast, tblKnownSlow, tblPotential )
 
     wipe ( tblKnownFast )
@@ -185,6 +172,7 @@ end
 --	  The "potential" table is a numerically indexed SPARSE array, and not sequencees.  The element
 --	  indices are itemIDs, and the values are either "fast" or "slow" to indicate the item's mount-speed.
 --	  They are for rapid lookups, but can be iterated with ipairs_sparse().
+--
 local function getMatchingBaggedItems( tblBaggedFast, tblBaggedSlow, tblPotential )
     local itemID
     local num = 0
@@ -212,7 +200,10 @@ end
 
 --- Class constructor "new"
 -- Creates a new Mounts object and sets initial state.
--- @return          The newly constructed and initialized Mounts object
+--
+-- @param		    (none)
+-- @return  mountsObject    The newly constructed and initialized Mounts object
+--
 function MR.Mounts_mt:new( )
     local mountsObject = {}                    -- new object
     setmetatable( mountsObject, MR.Mounts_mt )
@@ -220,7 +211,6 @@ function MR.Mounts_mt:new( )
 
     -- Per-object private Data
     ----------------------------------------------------------------------------
-    self.useCastableMounts	    = true
     self.tblBaggedFlyingItemsFast   = {}
     self.tblBaggedFlyingItemsSlow   = {}
     self.tblBaggedGroundItemsFast   = {}
@@ -229,7 +219,6 @@ function MR.Mounts_mt:new( )
     self.tblKnownFlyingSpellsSlow   = {}
     self.tblKnownGroundSpellsFast   = {}
     self.tblKnownGroundSpellsSlow   = {}
-    self.ridingSkill		    = getRidingSkill( )
     ----------------------------------------------------------------------------
 
     return mountsObject
@@ -239,7 +228,10 @@ end
 --- Class public-method "generateMountList"
 -- (Re)generates the full list of available mounts, from known mount spells and mount-related items
 -- currently in inventory.
--- @return  num	    Number of mounts available
+--
+-- @param   (none)
+-- @return  Number of mounts available
+--
 function MR.Mounts_mt:generateMountList( )
     getMatchingBaggedItems( self.tblBaggedGroundItemsFast, self.tblBaggedGroundItemsSlow, tblPotentialGroundItems )
     getKnownSpells( self.tblKnownGroundSpellsFast, self.tblKnownGroundSpellsSlow, tblPotentialGroundSpells )
@@ -248,18 +240,22 @@ function MR.Mounts_mt:generateMountList( )
 	getMatchingBaggedItems( self.tblBaggedFlyingItemsFast, self.tblBaggedFlyingItemsSlow, tblPotentialFlyingItems )
 	getKnownSpells( self.tblKnownFlyingSpellsFast, self.tblKnownFlyingSpellsSlow, tblPotentialFlyingSpells )
     end
-    debug:info( "%d mount(s) available", self:getTotalNumMounts( ) )
-    return num
+    return self:getTotalNumMounts( )
 end
 
 
 --- Class public-method "canFly"
--- Indicates whether or not the player has sufficient riding skill to use flying mounts
+-- Indicates whether or not the player has sufficient riding skill to use flying mounts.  Note that this
+-- does NOT indicate whether the current zone/location allows flight.
 --
 -- @return  true    Player has sufficient riding skill to fly
 -- @return  false   Player does not have sufficient riding skill to fly
 --
--- NOTE: In WoW Classic (and Season-of-Master), no flight is possible
+-- NOTES:  In WoW Classic (and Season-of-Master), no flight is possible.
+--
+-- TODO:   Once this addon is migrated to a flight-capable version of the game, update this function to
+--	   actually do something beyond arbitrarily returning false.
+--
 function MR.Mounts_mt:canFly( )
     local flightCapable = false
 
@@ -273,10 +269,12 @@ function MR.Mounts_mt:canFly( )
 end
 
 
-
 --- Class public-method "showMounts"
--- Lists currently available mounts, from known mount spells, and mount-related items currently
--- in inventory.
+-- Lists currently available mounts, from known mount spells, and mount-related items currently in inventory.
+--
+-- @param   (none)
+-- @return  (none)  Outputs directly to debugging interface
+--
 function MR.Mounts_mt:showMounts( )
 
     for i = 1, #self.tblKnownGroundSpellsFast do
@@ -313,99 +311,115 @@ end
 
 --- Class public-method "getNumItemsFlying"
 -- Returns the number of flying mount-capable items presently in player's bags
--- @arg	    speed   Speed ("fast", "slow" or "all") of mounts to count
+--
+-- @param   speed   Speed ("fast", "slow" or "all") of mounts to count
 -- @return  num	    Number of flying mount-capable items presently in player's bags
+--
 function MR.Mounts_mt:getNumItemsFlying( speed )
-    if speed == "fast" then
-	return #self.tblBaggedFlyingItemsFast
-    elseif speed == "slow" then
-	return #self.tblBaggedFlyingItemsSlow
-    else
-	return ( #self.tblBaggedFlyingItemsFast + #self.tblBaggedFlyingItemsSlow )
+    local num
+
+    if	    speed == "fast" then num = #self.tblBaggedFlyingItemsFast
+    elseif  speed == "slow" then num = #self.tblBaggedFlyingItemsSlow
+    else    num  =  ( #self.tblBaggedFlyingItemsFast + #self.tblBaggedFlyingItemsSlow )
     end
+    return num
 end
 
 
 --- Class public-method "getNumItemsGround"
 -- Returns the number of ground mount-capable items presently in player's bags
--- @arg	    speed   Speed ("fast", "slow" or "all") of mounts to count
+--
+-- @param   speed   Speed ("fast", "slow" or "all") of mounts to count
 -- @return  num	    Number of ground mount-capable items presently in player's bags
+--
 function MR.Mounts_mt:getNumItemsGround( speed )
-    if speed == "fast" then
-	return #self.tblBaggedGroundItemsFast
-    elseif speed == "slow" then
-	return #self.tblBaggedGroundItemsSlow
-    else
-	return ( #self.tblBaggedGroundItemsFast + #self.tblBaggedGroundItemsSlow )
+    local num
+
+    if	    speed == "fast" then num = #self.tblBaggedGroundItemsFast
+    elseif  speed == "slow" then num = #self.tblBaggedGroundItemsSlow
+    else    num =  ( #self.tblBaggedGroundItemsFast + #self.tblBaggedGroundItemsSlow )
     end
+    return num
 end
 
 
 --- Class public-method "getNumSpellsFlying"
 -- Returns the number of flying mount spells presently known to the player
--- @arg	    speed   Speed ("fast", "slow" or "all") of mounts to count
+--
+-- @para    speed   Speed ("fast", "slow" or "all") of mounts to count
 -- @return  num	    Number of ground mount spells presently known to the player
+--
 function MR.Mounts_mt:getNumSpellsFlying( speed )
-    if speed == "fast" then
-	return #self.tblKnownFlyingSpellsFast
-    elseif speed == "slow" then
-	return #self.tblKnownFlyingSpellsSlow
-    else
-	return ( #self.tblKnownFlyingSpellsFast + #self.tblKnownFlyingSpellsSlow )
+    local num
+
+    if	    speed == "fast" then num = #self.tblKnownFlyingSpellsFast
+    elseif  speed == "slow" then num = #self.tblKnownFlyingSpellsSlow
+    else    num = ( #self.tblKnownFlyingSpellsFast + #self.tblKnownFlyingSpellsSlow )
     end
+    return num
 end
 
 
 --- Class public-method "getNumSpellsGround"
 -- Returns the number of ground mount spells presently known to the player
--- @arg	    speed   Speed ("fast", "slow" or "all") of mounts to count
+--
+-- @param   speed   Speed ("fast", "slow" or "all") of mounts to count
 -- @return  num	    Number of ground mount spells presently known to the player
+--
 function MR.Mounts_mt:getNumSpellsGround( speed )
-    if speed == "fast" then
-	return #self.tblKnownGroundSpellsFast
-    elseif speed == "slow" then
-	return #self.tblKnownGroundSpellsSlow
-    else
-	return ( #self.tblKnownGroundSpellsFast + #self.tblKnownGroundSpellsSlow )
+    local num
+
+    if	    speed == "fast" then num = #self.tblKnownGroundSpellsFast
+    elseif  speed == "slow" then num = #self.tblKnownGroundSpellsSlow
+    else    num = ( #self.tblKnownGroundSpellsFast + #self.tblKnownGroundSpellsSlow )
     end
+    return num
 end
 
 
 --- Class public-method "getTotalNumMounts"
 -- Returns the total number of available mounts
--- @return  num	    Total number of available mounts (ground/flying, spell-castable/item-based)
+--
+-- @param   (none)
+-- @return  Total number of available mounts (ground/flying, spell-castable/item-based)
+--
 function MR.Mounts_mt:getTotalNumMounts( )
     return ( self:getNumItemsFlying( ) + self:getNumItemsGround( ) + self:getNumSpellsFlying( ) + self:getNumSpellsGround( ) )
 end
 
 
---- Class public-method "getRandomUseableMount"
--- Returns a randomly-chosen mount that is currently availble/usable by the player
+--- Class public-method "getRandomUsableMount"
+-- Returns a randomly-chosen mount that is currently availble/usable by the player, or nil if none available.
 --
--- @return type, mountID    Selected mount, where:  type = "spell" or "item"
---						    mountID = Spell ID or Item ID (based on type) of mount
--- @return nil		    No mounts available/usable
+-- @param   (none)
+-- @return  chosenType	    Type of chosen mount ("spell" or "item"), or nil if none chosen
+-- @return  chosenmountID   Spell ID or Item ID (based on type) of chosen mount, or nil if none chosen
 --
--- NOTES: In WoW Classic (and Season-of-Master), no flight is possible
+-- NOTES: In WoW Classic (and Season-of-Master), no flight is possible.
 --	  See the comments below for situational prioritization of results
-function MR.Mounts_mt:getRandomUseableMount( )
+--
+function MR.Mounts_mt:getRandomUsableMount( )
     local tblAvailableSpells	= {}
     local tblAvailableItems	= {}
     local numAvailableSpells	= 0
     local numAvailableItems	= 0
     local numAvailableTotal	= 0
-    local chosenType		= 0
+    local chosenType
+    local chosenMountID
+
+    -- (Re)Generate list of available mounts from scratch
+    self:generateMountList( )
 
     -- Stop if no mounts available
     if self:getTotalNumMounts( ) == 0 then
 	debug:debug( "Can't choose a mount - no mounts available." )
-	return nil
+	return nil, nil
     end
 
     -- Stop if no ground mounts available and the player cannot fly
-    if self:canFly( ) == false and ( self:getNumSpellsGround( ) + self:getNumItemsGround( ) ) == 0 then
+    if self:getNumSpellsGround( ) == 0 and self:getNumItemsGround( ) == 0 and self:canFly() == false then
 	debug:debug( "Can't choose a mount - no ground mounts available and you can't fly" )
-	return nil
+	return nil, nil
     end
 
     -- Shortlist all available mounts that are of the highest priority available
@@ -466,19 +480,36 @@ function MR.Mounts_mt:getRandomUseableMount( )
     elseif numAvailableSpells > 0 then
 	chosenType = "spell"
     else
-	chosentype = "item"
+	chosenType = "item"
     end
 
     -- Choose a mount randomly from the shortlisted ones
     if chosenType == "spell" then
 	chosenMountID = tblAvailableSpells[math.random( 1, numAvailableSpells ) ]
-	debug:always( "|cff0099ff%s|r chosen from |cffffff00%d|r available mount(s)", GetSpellInfo( chosenMountID ), numAvailableTotal )
     else
 	chosenMountID = tblAvailableItems[math.random( 1, numAvailableItems ) ]
-	debug:always( "|cff0099ff%s|r chosen from |cffffff00%d|r available mount(s)", GetItemInfo( chosenMountID ), numAvailableTotal )
     end
-
     return chosenType, chosenMountID
+end
+
+
+--- Class public-method "configureButton"
+-- Configures the provided button to summon (either spell-cast or item-use) use the specified mount.
+-- The specified item/spell must be in the player's bags / spellbook.
+--
+-- @param   button	Previously-created button to configure
+-- @param   type	("spell" or "item") How to summon the mount
+-- @param   mountID	Spell ID or Item ID (based on type) of mount to summon
+-- @return  (none)
+--
+function MR.Mounts_mt:configureButton( button, type, mountID )
+    if type == "spell" then
+	MR_button:SetAttribute( "type", "spell" )
+	MR_button:SetAttribute( "spell", GetSpellInfo( mountID ) )
+    else
+	MR_button:SetAttribute( "type", "item" )
+	MR_button:SetAttribute( "item", GetItemInfo( mountID ) )
+    end
 end
 
 

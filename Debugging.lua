@@ -2,7 +2,7 @@
     File Name		:   Debugging.lua
     Created By		:   tubiakou
     Creation Date	:   [2019-01-07 01:28]
-    Last Modified	:   [2022-03-21 21:56]
+    Last Modified	:   [2022-03-23 12:39]
     Description		:   Debugging facility for the WoW addon MountRoulette
 --]]
 --[[
@@ -172,8 +172,9 @@ function MR.Debugging_mt:new( )
 
     -- Per-object private Data
     ----------------------------------------------------------------------------
-    debugObject.order    = 0    -- gets initialized by call to self:setLevel() below
-    debugObject.level    = 0    -- gets initialized by call to self:setLevel() below
+    debugObject.order	    = 0	    -- gets initialized by call to self:setLevel() below
+    debugObject.level	    = 0	    -- gets initialized by call to self:setLevel() below
+    debugObject.initialized = false -- Indicates whether object has been initialized
 --  debugObject.colour	 = "00ff00"
     ----------------------------------------------------------------------------
 
@@ -181,7 +182,8 @@ function MR.Debugging_mt:new( )
     ----------------------------------------------------------------------------
     debugObject:setLevel( WARN )
     ----------------------------------------------------------------------------
-
+    
+    debugObject.initialized = true
     return debugObject                              -- Pass object's reference back to caller
 end
 
@@ -194,8 +196,9 @@ function MR.Debugging_mt:setLevel( level )
     if( order == nil ) then
         debug:error( "Undefined debug level [%s]; ignoring.", _tostring( level ) )
     else
-        if( self.level ) then
-            self:log( WARN, "Changing log-level from %s to %s", self.level, level )
+	-- Don't display this msg on first initialization
+        if( self.initialized == true ) then
+            self:log( INFO, "Changing log-level from %s to %s", self.level, level )
         end
         self.level = level
         self.order = order
