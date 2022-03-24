@@ -2,13 +2,13 @@
     File Name		:   MountRoulette.lua
     Created By		:   tubiakou
     Creation Date	:   [2019-01-07 01:28]
-    Last Modified	:   [2022-03-23 22:00]
+    Last Modified	:   [2022-03-23 23:25]
     Description		:   Play Roulette with your mounts!
 --]]
 
 local addonName, MR = ...
 
-MR.addonVersion = "1.0.0"
+MR.addonVersion = "1.14.01-classic"
 
 
 --- Helper function "startswith"

@@ -4,7 +4,7 @@
 
 ## Notes: Play roulette with your mounts!
 
-## Version: 1.0.0
+## Version: 1.14.01-classic
 ## Author: WireRydr
 
 ## SavedVariables: MountRoulette
